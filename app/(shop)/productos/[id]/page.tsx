@@ -55,6 +55,7 @@ export default function ProductDetailPage() {
       image: product.images[0] ?? '',
       size: selectedSize,
       quantity: 1,
+      stock: product.stock,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)

@@ -62,7 +62,8 @@ export default function CarritoPage() {
                   <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                   <button
                     onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
-                    className="p-1.5 hover:bg-gray-50 transition-colors"
+                    disabled={item.quantity >= item.stock}
+                    className="p-1.5 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <Plus size={14} />
                   </button>
