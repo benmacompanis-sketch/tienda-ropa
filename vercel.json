@@ -1,4 +1,4 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "buildCommand": "rm -rf app/generated && prisma generate && prisma migrate deploy && next build"
+  "buildCommand": "rm -rf app/generated && prisma generate && prisma db push && next build"
 }
