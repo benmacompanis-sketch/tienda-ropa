@@ -182,7 +182,7 @@ export default function CheckoutPage() {
               {preferenceId && (
                 <Payment
                   initialization={{ amount: subtotal, preferenceId }}
-                  customization={{ paymentMethods: { maxInstallments: 12 } }}
+                  customization={{ paymentMethods: { mercadoPago: 'all', maxInstallments: 12 } }}
                   onSubmit={handlePaymentSubmit}
                   onError={(err) => console.error('MP Brick error:', err)}
                 />
