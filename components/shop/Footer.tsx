@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-white text-xl font-bold mb-3">
-              MODA<span className="text-rose-500">.</span>
+              Tienda<span className="text-rose-500"> Demo</span>
             </h3>
             <p className="text-sm">Tu tienda de ropa con las últimas tendencias.</p>
           </div>
@@ -27,7 +27,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-6 text-center text-xs">
-          © {new Date().getFullYear()} Tienda de Ropa. Todos los derechos reservados.
+          © {new Date().getFullYear()} Tienda Demo. Todos los derechos reservados.
         </div>
       </div>
     </footer>
