@@ -1,16 +1,24 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { initMercadoPago, Payment } from '@mercadopago/sdk-react'
 import { useCartStore } from '@/store/cart'
 import { Loader2, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
+
+initMercadoPago(process.env.NEXT_PUBLIC_MP_PUBLIC_KEY!, { locale: 'es-AR' })
+
+type Step = 'form' | 'payment'
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, total, clearCart } = useCartStore()
   const subtotal = total()
 
+  const [step, setStep] = useState<Step>('form')
   const [form, setForm] = useState({ name: '', email: '', phone: '' })
+  const [orderId, setOrderId] = useState<string | null>(null)
+  const [preferenceId, setPreferenceId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -29,13 +37,12 @@ export default function CheckoutPage() {
     )
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
-      // 1. Crear orden en la DB
       const orderRes = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,11 +58,9 @@ export default function CheckoutPage() {
           })),
         }),
       })
-
       if (!orderRes.ok) throw new Error('Error al crear la orden')
       const order = await orderRes.json()
 
-      // 2. Crear preferencia de MercadoPago
       const mpRes = await fetch('/api/mercadopago/create-preference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,16 +75,45 @@ export default function CheckoutPage() {
           })),
         }),
       })
-
       if (!mpRes.ok) throw new Error('Error al iniciar el pago')
-      const { initPoint } = await mpRes.json()
+      const { preferenceId: pid } = await mpRes.json()
 
       clearCart()
-      window.location.href = initPoint
+      setOrderId(order.id)
+      setPreferenceId(pid)
+      setStep('payment')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error inesperado')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handlePaymentSubmit = async ({
+    selectedPaymentMethod,
+    formData,
+  }: {
+    selectedPaymentMethod: string
+    formData: Record<string, unknown>
+  }) => {
+    // wallet_purchase: MercadoPago maneja el redirect via back_urls de la preferencia
+    if (selectedPaymentMethod === 'wallet_purchase') return
+
+    const res = await fetch('/api/mercadopago/process-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ formData, orderId, amount: subtotal, email: form.email }),
+    })
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.error || 'Error al procesar el pago')
+
+    if (data.status === 'approved') {
+      router.push(`/checkout/success?orderId=${orderId}`)
+    } else if (data.status === 'rejected') {
+      throw new Error('Tu pago fue rechazado. Intentá con otra tarjeta.')
+    } else {
+      router.push(`/checkout/success?orderId=${orderId}&pending=true`)
     }
   }
 
@@ -88,62 +122,74 @@ export default function CheckoutPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Finalizar compra</h1>
 
       <div className="grid lg:grid-cols-5 gap-8">
-        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Tus datos</h2>
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
-                {error}
+        <div className="lg:col-span-3">
+          {step === 'form' ? (
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <h2 className="font-semibold text-gray-900 mb-4">Tus datos</h2>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                    {error}
+                  </div>
+                )}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                    <input
+                      type="text"
+                      required
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      placeholder="Juan Pérez"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      placeholder="juan@ejemplo.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono (opcional)</label>
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      placeholder="+54 11 1234-5678"
+                    />
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
-                <input
-                  type="text"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  placeholder="Juan Pérez"
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white py-4 rounded-xl font-semibold transition-colors"
+              >
+                {loading && <Loader2 size={18} className="animate-spin" />}
+                {loading ? 'Procesando...' : 'Continuar al pago'}
+              </button>
+            </form>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <h2 className="font-semibold text-gray-900 mb-4">Elegí cómo pagar</h2>
+              {preferenceId && (
+                <Payment
+                  initialization={{ amount: subtotal, preferenceId }}
+                  customization={{ paymentMethods: { maxInstallments: 12 } }}
+                  onSubmit={handlePaymentSubmit}
+                  onError={(err) => console.error('MP Brick error:', err)}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  placeholder="juan@ejemplo.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono (opcional)</label>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  placeholder="+54 11 1234-5678"
-                />
-              </div>
+              )}
             </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white py-4 rounded-xl font-semibold transition-colors"
-          >
-            {loading && <Loader2 size={18} className="animate-spin" />}
-            {loading ? 'Procesando...' : `Pagar con MercadoPago — ${formatPrice(subtotal)}`}
-          </button>
-          <p className="text-xs text-gray-400 text-center">
-            Serás redirigido a MercadoPago para completar el pago de forma segura.
-          </p>
-        </form>
+          )}
+        </div>
 
         <div className="lg:col-span-2">
           <div className="bg-gray-50 rounded-2xl p-5">
