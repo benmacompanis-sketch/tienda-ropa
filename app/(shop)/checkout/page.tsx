@@ -89,13 +89,9 @@ export default function CheckoutPage() {
     }
   }
 
-  const handlePaymentSubmit = async ({
-    selectedPaymentMethod,
-    formData,
-  }: {
-    selectedPaymentMethod: string
-    formData: Record<string, unknown>
-  }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlePaymentSubmit = async (param: any) => {
+    const { selectedPaymentMethod, formData } = param
     // wallet_purchase: MercadoPago maneja el redirect via back_urls de la preferencia
     if (selectedPaymentMethod === 'wallet_purchase') return
 
