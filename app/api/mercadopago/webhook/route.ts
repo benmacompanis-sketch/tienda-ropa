@@ -29,8 +29,24 @@ export async function POST(request: NextRequest) {
 
       await prisma.order.update({
         where: { id: orderId },
-        data: { status: orderStatus as any, mpPaymentId: String(paymentId) },
+        data: { status: orderStatus as 'APPROVED' | 'REJECTED' | 'PENDING', mpPaymentId: String(paymentId) },
       })
+
+      // Restar stock cuando el pago se aprueba
+      if (orderStatus === 'APPROVED') {
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: { items: true },
+        })
+        if (order) {
+          for (const item of order.items) {
+            await prisma.product.update({
+              where: { id: item.productId },
+              data: { stock: { decrement: item.quantity } },
+            })
+          }
+        }
+      }
     }
 
     return Response.json({ ok: true })

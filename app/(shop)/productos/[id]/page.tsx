@@ -125,23 +125,29 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          <button
-            onClick={handleAddToCart}
-            disabled={!selectedSize || product.sizes.length === 0}
-            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium text-sm transition-all ${
-              added
-                ? 'bg-green-500 text-white'
-                : !selectedSize
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-rose-500 hover:bg-rose-600 text-white'
-            }`}
-          >
-            <ShoppingBag size={18} />
-            {added ? '¡Agregado al carrito!' : 'Agregar al carrito'}
-          </button>
+          {product.stock === 0 ? (
+            <div className="w-full py-3.5 rounded-xl font-medium text-sm text-center bg-gray-100 text-gray-400">
+              Sin stock
+            </div>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={!selectedSize || product.sizes.length === 0}
+              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium text-sm transition-all ${
+                added
+                  ? 'bg-green-500 text-white'
+                  : !selectedSize
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-rose-500 hover:bg-rose-600 text-white'
+              }`}
+            >
+              <ShoppingBag size={18} />
+              {added ? '¡Agregado al carrito!' : 'Agregar al carrito'}
+            </button>
+          )}
 
           <p className="text-xs text-gray-400 mt-3 text-center">
-            Stock disponible: {product.stock} unidades
+            {product.stock > 0 ? `Stock disponible: ${product.stock} unidades` : 'Producto agotado'}
           </p>
         </div>
       </div>

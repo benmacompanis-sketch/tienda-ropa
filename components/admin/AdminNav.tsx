@@ -23,7 +23,7 @@ export default function AdminNav() {
       <div className="p-6 border-b border-gray-800">
         <Link href="/" className="text-xl font-bold flex items-center gap-2">
           <Store size={20} className="text-rose-400" />
-          MODA<span className="text-rose-400">.</span>
+          Tienda<span className="text-rose-400"> Demo</span>
         </Link>
         <p className="text-xs text-gray-400 mt-1">Panel de Administración</p>
       </div>

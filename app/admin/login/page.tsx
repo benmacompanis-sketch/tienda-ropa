@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Store size={28} className="text-rose-400" />
-            <span className="text-white text-2xl font-bold">MODA<span className="text-rose-400">.</span></span>
+            <span className="text-white text-2xl font-bold">Tienda<span className="text-rose-400"> Demo</span></span>
           </div>
           <p className="text-gray-400 text-sm">Panel de Administración</p>
         </div>

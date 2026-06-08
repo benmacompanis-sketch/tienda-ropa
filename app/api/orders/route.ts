@@ -22,6 +22,18 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: 'Datos incompletos' }, { status: 400 })
     }
 
+    // Validar stock server-side
+    for (const item of items as { productId: string; quantity: number; size: string; price: number }[]) {
+      const product = await prisma.product.findUnique({ where: { id: item.productId } })
+      if (!product) return Response.json({ error: `Producto no encontrado` }, { status: 400 })
+      if (product.stock < item.quantity) {
+        return Response.json(
+          { error: `Stock insuficiente para "${product.name}". Disponible: ${product.stock}` },
+          { status: 400 }
+        )
+      }
+    }
+
     const total = items.reduce(
       (sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity,
       0
