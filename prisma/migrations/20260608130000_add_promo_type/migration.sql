@@ -1,2 +1,1 @@
--- AlterTable
-ALTER TABLE "Product" ADD COLUMN "promoType" TEXT;
+ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "promoType" TEXT;
