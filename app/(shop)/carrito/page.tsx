@@ -45,7 +45,7 @@ export default function CarritoPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-gray-900 text-sm line-clamp-1">{item.name}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Talle: {item.size}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Talle: {item.size}{item.color ? ` · ${item.color}` : ''}</p>
                 <p className="font-semibold text-rose-500 mt-1">{formatPrice(item.price)}</p>
               </div>
               <div className="flex flex-col items-end gap-2">

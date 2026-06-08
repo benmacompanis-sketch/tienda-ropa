@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Product" ADD COLUMN "colors" JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE "Product" ADD COLUMN "originalPrice" DOUBLE PRECISION;

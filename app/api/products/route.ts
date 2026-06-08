@@ -22,26 +22,47 @@ export async function GET(request: NextRequest) {
   return Response.json(products)
 }
 
+type ColorInput = { name: string; hex: string; images: string[] }
+
+async function uploadColors(colors: ColorInput[]): Promise<ColorInput[]> {
+  return Promise.all(
+    colors.map(async (color) => ({
+      ...color,
+      images: await Promise.all(
+        color.images.map((img) =>
+          img.startsWith('data:') ? uploadImage(img) : Promise.resolve(img)
+        )
+      ),
+    }))
+  )
+}
+
 export async function POST(request: NextRequest) {
   const session = await getSession()
   if (!session) return Response.json({ error: 'No autorizado' }, { status: 401 })
 
   try {
     const body = await request.json()
-    const { name, description, price, category, sizes, stock, featured, images } = body
+    const { name, description, price, originalPrice, category, sizes, stock, featured, images, colors } = body
 
     const uploadedImages: string[] = []
     for (const img of images as string[]) {
-      if (img.startsWith('data:')) {
-        const url = await uploadImage(img)
-        uploadedImages.push(url)
-      } else {
-        uploadedImages.push(img)
-      }
+      uploadedImages.push(img.startsWith('data:') ? await uploadImage(img) : img)
     }
 
+    const uploadedColors = await uploadColors(colors ?? [])
+
     const product = await prisma.product.create({
-      data: { name, description, price: Number(price), category, sizes, stock: Number(stock), featured: Boolean(featured), images: uploadedImages },
+      data: {
+        name, description,
+        price: Number(price),
+        originalPrice: originalPrice ? Number(originalPrice) : null,
+        category, sizes,
+        stock: Number(stock),
+        featured: Boolean(featured),
+        images: uploadedImages,
+        colors: uploadedColors,
+      },
     })
 
     return Response.json(product, { status: 201 })

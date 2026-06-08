@@ -68,7 +68,7 @@ export default function CheckoutPage() {
           orderId: order.id,
           buyerEmail: form.email,
           items: items.map((i) => ({
-            name: `${i.name} - Talle ${i.size}`,
+            name: `${i.name} - Talle ${i.size}${i.color ? ` - ${i.color}` : ''}`,
             price: i.price,
             quantity: i.quantity,
             image: i.image,
