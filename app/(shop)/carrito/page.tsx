@@ -49,19 +49,19 @@ export default function CarritoPage() {
                 <p className="font-semibold text-rose-500 mt-1">{formatPrice(item.price)}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <button onClick={() => removeItem(item.productId, item.size)} className="text-gray-400 hover:text-red-500 transition-colors">
+                <button onClick={() => removeItem(item.productId, item.size, item.color)} className="text-gray-400 hover:text-red-500 transition-colors">
                   <Trash2 size={16} />
                 </button>
                 <div className="flex items-center border border-gray-200 rounded-lg">
                   <button
-                    onClick={() => updateQuantity(item.productId, item.size, item.quantity - 1)}
+                    onClick={() => updateQuantity(item.productId, item.size, item.color, item.quantity - 1)}
                     className="p-1.5 hover:bg-gray-50 transition-colors"
                   >
                     <Minus size={14} />
                   </button>
                   <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                   <button
-                    onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
+                    onClick={() => updateQuantity(item.productId, item.size, item.color, item.quantity + 1)}
                     disabled={item.quantity >= item.stock}
                     className="p-1.5 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >

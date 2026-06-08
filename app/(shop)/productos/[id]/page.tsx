@@ -3,9 +3,16 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { ShoppingBag, ArrowLeft, Loader2 } from 'lucide-react'
-import { useCartStore } from '@/store/cart'
+import { useCartStore, effectiveQuantity } from '@/store/cart'
 
 type ProductColor = { name: string; hex: string; images: string[] }
+
+const PROMO_LABEL: Record<string, string> = {
+  TWO_FOR_ONE:    '2x1 — Llevás 2, pagás 1',
+  THREE_FOR_TWO:  '3x2 — Llevás 3, pagás 2',
+  FOUR_FOR_THREE: '4x3 — Llevás 4, pagás 3',
+  FREE_SHIPPING:  '🚚 Envío gratis en este producto',
+}
 
 type Product = {
   id: string
@@ -13,6 +20,7 @@ type Product = {
   description: string
   price: number
   originalPrice: number | null
+  promoType: string | null
   category: string
   sizes: string[]
   images: string[]
@@ -37,7 +45,7 @@ export default function ProductDetailPage() {
       .then((r) => r.json())
       .then((data) => {
         const colors = (data.colors as ProductColor[]) ?? []
-        setProduct({ ...data, colors })
+        setProduct({ ...data, colors, promoType: data.promoType ?? null })
         if (colors.length > 0) setSelectedColor(colors[0])
         setLoading(false)
       })
@@ -73,6 +81,7 @@ export default function ProductDetailPage() {
       color: selectedColor?.name ?? null,
       quantity: 1,
       stock: product.stock,
+      promoType: product.promoType,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
@@ -124,6 +133,12 @@ export default function ProductDetailPage() {
               </>
             )}
           </div>
+
+          {product.promoType && PROMO_LABEL[product.promoType] && (
+            <div className="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold px-3 py-1.5 rounded-full mb-4">
+              🏷️ {PROMO_LABEL[product.promoType]}
+            </div>
+          )}
 
           <p className="text-gray-600 leading-relaxed mb-6">{product.description}</p>
 

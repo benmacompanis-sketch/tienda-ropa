@@ -4,11 +4,19 @@ import Image from 'next/image'
 
 type ProductColor = { name: string; hex: string; images: string[] }
 
+const PROMO_BADGE: Record<string, string> = {
+  TWO_FOR_ONE:    '2x1',
+  THREE_FOR_TWO:  '3x2',
+  FOUR_FOR_THREE: '4x3',
+  FREE_SHIPPING:  '🚚 Envío gratis',
+}
+
 type Product = {
   id: string
   name: string
   price: number
   originalPrice?: number | null
+  promoType?: string | null
   images: string[]
   colors?: ProductColor[]
   category: string
@@ -24,6 +32,7 @@ export default function ProductCard({ product }: { product: Product }) {
     : null
 
   const colors = product.colors ?? []
+  const promoBadge = product.promoType ? PROMO_BADGE[product.promoType] : null
 
   return (
     <Link href={`/productos/${product.id}`} className="group block">
@@ -37,7 +46,12 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-5xl">👗</span>
           </div>
         )}
-        {discount && (
+        {promoBadge && (
+          <span className="absolute top-2 left-2 bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            {promoBadge}
+          </span>
+        )}
+        {!promoBadge && discount && (
           <span className="absolute top-2 left-2 bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
             -{discount}%
           </span>

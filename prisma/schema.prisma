@@ -26,6 +26,7 @@ model Product {
   colors        Json        @default("[]")
   stock         Int         @default(0)
   originalPrice Float?
+  promoType     String?
   featured      Boolean     @default(false)
   active        Boolean     @default(true)
   createdAt   DateTime    @default(now())

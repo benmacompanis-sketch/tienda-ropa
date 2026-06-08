@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { name, description, price, originalPrice, category, sizes, stock, featured, images, colors } = body
+    const { name, description, price, originalPrice, promoType, category, sizes, stock, featured, images, colors } = body
 
     const uploadedImages: string[] = []
     for (const img of images as string[]) {
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
         name, description,
         price: Number(price),
         originalPrice: originalPrice ? Number(originalPrice) : null,
+        promoType: promoType || null,
         category, sizes,
         stock: Number(stock),
         featured: Boolean(featured),

@@ -6,12 +6,21 @@ import { X, Upload, Loader2, Plus } from 'lucide-react'
 
 export type ProductColor = { name: string; hex: string; images: string[] }
 
+export const PROMO_TYPES = [
+  { value: '', label: 'Sin promoción' },
+  { value: 'TWO_FOR_ONE', label: '2x1 — Llevás 2, pagás 1' },
+  { value: 'THREE_FOR_TWO', label: '3x2 — Llevás 3, pagás 2' },
+  { value: 'FOUR_FOR_THREE', label: '4x3 — Llevás 4, pagás 3' },
+  { value: 'FREE_SHIPPING', label: '🚚 Envío gratis' },
+]
+
 type ProductFormData = {
   id?: string
   name: string
   description: string
   price: number
   originalPrice: number | null
+  promoType: string
   category: string
   sizes: string[]
   stock: number
@@ -39,6 +48,7 @@ export default function ProductForm({ initial }: { initial?: Partial<ProductForm
     description: '',
     price: 0,
     originalPrice: null,
+    promoType: '',
     category: 'mujer',
     sizes: [],
     stock: 0,
@@ -153,7 +163,7 @@ export default function ProductForm({ initial }: { initial?: Partial<ProductForm
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Precio original <span className="text-gray-400 font-normal">(opcional, para mostrar promo)</span>
+            Precio original <span className="text-gray-400 font-normal">(opcional, para mostrar % de descuento)</span>
           </label>
           <input type="number" min={0} value={form.originalPrice ?? ''}
             onChange={(e) => setForm({ ...form, originalPrice: e.target.value ? Number(e.target.value) : null })}
@@ -162,6 +172,14 @@ export default function ProductForm({ initial }: { initial?: Partial<ProductForm
           {discount && (
             <p className="text-xs text-green-600 mt-1 font-medium">🏷️ Descuento: {discount}% OFF</p>
           )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de promoción</label>
+          <select value={form.promoType} onChange={(e) => setForm({ ...form, promoType: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+            {PROMO_TYPES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+          </select>
         </div>
 
         <div>
